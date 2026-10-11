@@ -1,15 +1,20 @@
-using UnityEngine;
 using System.Diagnostics;
-using System;
-using SortCSharpPlugin;
+using System.Runtime.InteropServices;
+using UnityEngine;
 
 public class FunctionTimer : MonoBehaviour
 {
     [SerializeField] private InEngineSort inEngineSort;
     [SerializeField] private SortCSharpPlugin.SortCSharpPlugin plugin;
+    //[SerializeField] private TestDLL cppPlugin;
 
+    [DllImport("TestDLL", EntryPoint = "TestSort")]
+    public static extern void TestSort(int[] a, int length);
+
+    private int[] cppArray;
     void Start()
     {
+        cppArray = (int[])inEngineSort.massiveArray.Clone();
         MeasureFunctionExecutionTime();
     }
 
@@ -31,7 +36,13 @@ public class FunctionTimer : MonoBehaviour
         elapsedMilliseconds = stopwatch.ElapsedMilliseconds; // Get the elapsed time
         UnityEngine.Debug.Log($"C# Plugin took {elapsedMilliseconds} ms to execute.");
 
+        stopwatch.Reset();
 
+        stopwatch.Start(); // Start timing
+        CppPlugin(); // Call the function you want to measure
+        stopwatch.Stop();  // Stop timing
+        elapsedMilliseconds = stopwatch.ElapsedMilliseconds; // Get the elapsed time
+        UnityEngine.Debug.Log($"C++ Plugin took {elapsedMilliseconds} ms to execute.");
 
     }
 
@@ -43,5 +54,10 @@ public class FunctionTimer : MonoBehaviour
     void CSharpPlugin()
     {
         plugin.TestSort(plugin.massiveArray);
+    }
+
+    void CppPlugin()
+    {
+        TestSort(cppArray, cppArray.Length);
     }
 }
